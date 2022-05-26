@@ -2,6 +2,10 @@ import { useState, FormEvent } from 'react';
 
 type Validations = {
   characters: (proposition: string) => boolean;
+  joinOperatorCharacters: (proposition: string[]) => {
+    proposition: string[];
+    isValid: boolean;
+  };
   isAProposition: (
     proposition: string[],
     operatorIndex: number
@@ -17,6 +21,30 @@ export function PropositionalForm() {
     characters: (proposition) => {
       const validCharacters = /^[A-Z v\~\^\-\<\>\(\)]+$/;
       return validCharacters.test(proposition);
+    },
+    joinOperatorCharacters: (proposition) => {
+      let barIndex = proposition.indexOf('-');
+      if (barIndex === -1) return { proposition, isValid: true };
+
+      while (barIndex !== -1) {
+        const previous = barIndex - 1,
+          next = barIndex + 1;
+
+        if (proposition[next] === '>') {
+          if (proposition[previous] === '<') {
+            proposition[barIndex] = '<->';
+            proposition.splice(next, 1);
+            proposition.splice(previous, 1);
+          } else {
+            proposition[barIndex] = '->';
+            proposition.splice(next, 1);
+          }
+        } else return { proposition: [''], isValid: false };
+
+        barIndex = proposition.indexOf('-');
+      }
+
+      return { proposition, isValid: true };
     },
     isAProposition: (proposition, operatorIndex) => {
       const uppercaseLetters = /[A-Z]/;
@@ -77,7 +105,13 @@ export function PropositionalForm() {
 
     testPropositions.forEach((test) => {
       const testString = test.replace(/ /g, '');
-      const testArray = testString.split('');
+      const { proposition, isValid } = validations.joinOperatorCharacters(
+        testString.split('')
+      );
+
+      if (!isValid) return;
+
+      const testArray = proposition;
 
       console.log(test);
       console.log(testString);
