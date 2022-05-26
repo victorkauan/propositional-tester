@@ -3,29 +3,28 @@ import { useState, FormEvent } from 'react';
 export function PropositionalForm() {
   const [userProposition, setUserProposition] = useState('');
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    testProposition();
-    event.preventDefault();
-  }
-
   const validations = {
-    validCharacters: (formula: string) => {
+    characters: (proposition: string) => {
       const validCharacters = /^[A-Z v\~\^\-\<\>\(\)]+$/;
-      return validCharacters.test(formula);
+      return validCharacters.test(proposition);
     },
-    not: (formula: string) => {
-      let formulaArray = formula.split('');
-
-      let notIndex = formulaArray.indexOf('~');
+    isAProposition: (proposition: string[], operatorIndex: number) => {
+      const uppercaseLetters = /[A-Z]/;
+      return {
+        next: uppercaseLetters.test(proposition[operatorIndex + 1]),
+        previous: uppercaseLetters.test(proposition[operatorIndex - 1]),
+      };
+    },
+    not: (proposition: string[]) => {
+      let notIndex = proposition.indexOf('~');
       if (notIndex === -1) return true;
 
-      const uppercaseLetters = /[A-Z]/;
       while (notIndex !== -1) {
-        const nextIsALetter = uppercaseLetters.test(formulaArray[notIndex + 1]);
-        if (!nextIsALetter) return false;
+        const { next } = validations.isAProposition(proposition, notIndex);
+        if (!next) return false;
 
-        formulaArray.splice(notIndex, 1);
-        notIndex = formulaArray.indexOf('~');
+        proposition.splice(notIndex, 1);
+        notIndex = proposition.indexOf('~');
       }
 
       return true;
@@ -33,15 +32,38 @@ export function PropositionalForm() {
   };
 
   function testProposition() {
-    const formulaString = userProposition.replace(/ /g, '');
+    const testPropositions = [
+      '~A',
+      'A v B',
+      'A ^ B',
+      'A -> B',
+      'A <-> B',
+      '~',
+      'v',
+      '^',
+      '->',
+      '<->',
+    ];
 
-    if (
-      validations.validCharacters(formulaString) &&
-      validations.not(formulaString)
-    )
-      return true;
+    // const propositionString = userProposition.replace(/ /g, '');
+    // const propositionArray = propositionString.split('');
 
-    return false;
+    testPropositions.forEach((test) => {
+      const testString = test.replace(/ /g, '');
+      const testArray = testString.split('');
+
+      console.log(test);
+      console.log(testString);
+      console.log(testArray);
+
+      console.log(`Valid characters: ${validations.characters(testString)}`);
+      console.log(`Not operator: ${validations.not(testArray)}`);
+    });
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    testProposition();
+    event.preventDefault();
   }
 
   return (
