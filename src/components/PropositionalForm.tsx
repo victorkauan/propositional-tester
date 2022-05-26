@@ -1,21 +1,30 @@
 import { useState, FormEvent } from 'react';
 
+type Validations = {
+  characters: (proposition: string) => boolean;
+  isAProposition: (
+    proposition: string[],
+    operatorIndex: number
+  ) => { next: boolean; previous: boolean };
+  not: (proposition: string[]) => boolean;
+};
+
 export function PropositionalForm() {
   const [userProposition, setUserProposition] = useState('');
 
-  const validations = {
-    characters: (proposition: string) => {
+  const validations: Validations = {
+    characters: (proposition) => {
       const validCharacters = /^[A-Z v\~\^\-\<\>\(\)]+$/;
       return validCharacters.test(proposition);
     },
-    isAProposition: (proposition: string[], operatorIndex: number) => {
+    isAProposition: (proposition, operatorIndex) => {
       const uppercaseLetters = /[A-Z]/;
       return {
         next: uppercaseLetters.test(proposition[operatorIndex + 1]),
         previous: uppercaseLetters.test(proposition[operatorIndex - 1]),
       };
     },
-    not: (proposition: string[]) => {
+    not: (proposition) => {
       let notIndex = proposition.indexOf('~');
       if (notIndex === -1) return true;
 
