@@ -6,7 +6,8 @@ type Validations = {
     proposition: string[],
     operatorIndex: number
   ) => { next: boolean; previous: boolean };
-  not: (proposition: string[]) => boolean;
+  unaryOperators: (proposition: string[], operatorSymbol: string) => boolean;
+  binaryOperators: (proposition: string[], operatorSymbol: string) => boolean;
 };
 
 export function PropositionalForm() {
@@ -20,12 +21,12 @@ export function PropositionalForm() {
     isAProposition: (proposition, operatorIndex) => {
       const uppercaseLetters = /[A-Z]/;
       return {
-        next: uppercaseLetters.test(proposition[operatorIndex + 1]),
         previous: uppercaseLetters.test(proposition[operatorIndex - 1]),
+        next: uppercaseLetters.test(proposition[operatorIndex + 1]),
       };
     },
-    not: (proposition) => {
-      let notIndex = proposition.indexOf('~');
+    unaryOperators: (proposition, operatorSymbol) => {
+      let notIndex = proposition.indexOf(operatorSymbol);
       if (notIndex === -1) return true;
 
       while (notIndex !== -1) {
@@ -33,7 +34,24 @@ export function PropositionalForm() {
         if (!next) return false;
 
         proposition.splice(notIndex, 1);
-        notIndex = proposition.indexOf('~');
+        notIndex = proposition.indexOf(operatorSymbol);
+      }
+
+      return true;
+    },
+    binaryOperators: (proposition, operatorSymbol) => {
+      let operatorIndex = proposition.indexOf(operatorSymbol);
+      if (operatorIndex === -1) return true;
+
+      while (operatorIndex !== -1) {
+        const { previous, next } = validations.isAProposition(
+          proposition,
+          operatorIndex
+        );
+        if (!previous || !next) return false;
+
+        proposition.splice(operatorIndex, 1);
+        operatorIndex = proposition.indexOf(operatorSymbol);
       }
 
       return true;
@@ -48,8 +66,8 @@ export function PropositionalForm() {
       'A -> B',
       'A <-> B',
       '~',
-      'v',
       '^',
+      'v',
       '->',
       '<->',
     ];
@@ -66,7 +84,15 @@ export function PropositionalForm() {
       console.log(testArray);
 
       console.log(`Valid characters: ${validations.characters(testString)}`);
-      console.log(`Not operator: ${validations.not(testArray)}`);
+      console.log(
+        `Not operator: ${validations.unaryOperators(testArray, '~')}`
+      );
+      console.log(
+        `And operator: ${validations.binaryOperators(testArray, '^')}`
+      );
+      console.log(
+        `Or operator: ${validations.binaryOperators(testArray, 'v')}`
+      );
     });
   }
 
