@@ -7,6 +7,8 @@ type Validations = {
     isValid: boolean;
   };
   hasConsecutiveLetters: (proposition: string[]) => boolean;
+  openCloseParentheses: (proposition: string) => boolean;
+  emptyParentheses: (proposition: string[]) => boolean;
   isAProposition: (
     proposition: string[],
     operatorIndex: number
@@ -35,6 +37,33 @@ export function PropositionalForm() {
       }
 
       return false;
+    },
+    emptyParentheses: (proposition) => {
+      for (let i = 0; i < proposition.length; i++) {
+        if (proposition[i] === '(' && proposition[i + 1] === ')') return true;
+      }
+
+      return false;
+    },
+    openCloseParentheses: (proposition) => {
+      const notParentheses = /[^\(\)]/;
+      let propositionArray = proposition.replace(notParentheses, '');
+
+      let openIndex = propositionArray.indexOf('(');
+      let closeIndex = propositionArray.indexOf(')');
+
+      if (openIndex === -1 && closeIndex === -1) return true;
+
+      let openCloseCounter = 0;
+
+      for (let i = 0; i < propositionArray.length; i++) {
+        if (propositionArray[i] === '(') openCloseCounter += 1;
+        else if (propositionArray[i] === ')') openCloseCounter -= 1;
+
+        if (openCloseCounter < 0) return false;
+      }
+
+      return openCloseCounter === 0;
     },
     joinOperatorCharacters: (proposition) => {
       let barIndex = proposition.indexOf('-');
@@ -89,6 +118,7 @@ export function PropositionalForm() {
         proposition = proposition.filter((_, index) => index !== notIndex);
         notIndex = proposition.indexOf(operatorSymbol);
       }
+
       return true;
     },
     binaryOperators: (proposition, operatorSymbol) => {
@@ -112,17 +142,22 @@ export function PropositionalForm() {
 
   function testProposition() {
     const propositionString = userProposition.replace(/ /g, '');
+    if (!validations.characters(propositionString)) return false;
 
     const { propositionArray, isValid } = validations.joinOperatorCharacters(
       propositionString.split('')
     );
     if (!isValid) return false;
 
-    if (validations.hasConsecutiveLetters(propositionArray)) return false;
-
     console.log(userProposition);
     console.log(propositionString);
     console.log(propositionArray);
+
+    if (!validations.openCloseParentheses(propositionString)) return false;
+
+    if (validations.emptyParentheses(propositionArray)) return false;
+
+    if (validations.hasConsecutiveLetters(propositionArray)) return false;
 
     const unaryOperators = ['~'];
     const areUnaryOperatorsValid = unaryOperators.every((operator) =>
@@ -134,12 +169,7 @@ export function PropositionalForm() {
       validations.binaryOperators(propositionArray, operator)
     );
 
-    if (
-      !validations.characters(propositionString) ||
-      !areUnaryOperatorsValid ||
-      !areBinaryOperatorsValid
-    )
-      return false;
+    if (!areUnaryOperatorsValid || !areBinaryOperatorsValid) return false;
 
     return true;
   }
