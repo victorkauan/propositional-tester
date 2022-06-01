@@ -53,13 +53,15 @@ export function PropositionalForm() {
       const uppercaseLetters = /[A-Z]/;
       const openParentheses = /\(/;
       const closeParentheses = /\)/;
+      const notOperator = /~/;
       return {
         previous:
           uppercaseLetters.test(proposition[operatorIndex - 1]) ||
           closeParentheses.test(proposition[operatorIndex - 1]),
         next:
           uppercaseLetters.test(proposition[operatorIndex + 1]) ||
-          openParentheses.test(proposition[operatorIndex + 1]),
+          openParentheses.test(proposition[operatorIndex + 1]) ||
+          notOperator.test(proposition[operatorIndex + 1]),
       };
     },
     unaryOperators: (proposition, operatorSymbol) => {
