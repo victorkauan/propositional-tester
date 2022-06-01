@@ -127,6 +127,12 @@ export function PropositionalForm() {
       console.log(
         `Or operator: ${validations.binaryOperators(testArray, 'v')}`
       );
+      console.log(
+        `Conditional operator: ${validations.binaryOperators(testArray, '->')}`
+      );
+      console.log(
+        `Equivalence operator: ${validations.binaryOperators(testArray, '<->')}`
+      );
     });
   }
 
