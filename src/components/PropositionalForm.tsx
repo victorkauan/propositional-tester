@@ -6,6 +6,7 @@ type Validations = {
     propositionArray: string[];
     isValid: boolean;
   };
+  hasConsecutiveLetters: (proposition: string[]) => boolean;
   isAProposition: (
     proposition: string[],
     operatorIndex: number
@@ -21,6 +22,19 @@ export function PropositionalForm() {
     characters: (proposition) => {
       const validCharacters = /^[A-Z v\~\^\-\<\>\(\)]+$/;
       return validCharacters.test(proposition);
+    },
+    hasConsecutiveLetters: (proposition) => {
+      const uppercaseLetters = /[A-Z]/;
+
+      for (let i = 0; i < proposition.length - 1; i++) {
+        if (
+          uppercaseLetters.test(proposition[i]) &&
+          uppercaseLetters.test(proposition[i + 1])
+        )
+          return true;
+      }
+
+      return false;
     },
     joinOperatorCharacters: (proposition) => {
       let barIndex = proposition.indexOf('-');
@@ -98,11 +112,13 @@ export function PropositionalForm() {
 
   function testProposition() {
     const propositionString = userProposition.replace(/ /g, '');
+
     const { propositionArray, isValid } = validations.joinOperatorCharacters(
       propositionString.split('')
     );
-
     if (!isValid) return false;
+
+    if (validations.hasConsecutiveLetters(propositionArray)) return false;
 
     console.log(userProposition);
     console.log(propositionString);
