@@ -3,7 +3,7 @@ import { useState, FormEvent } from 'react';
 type Validations = {
   characters: (proposition: string) => boolean;
   joinOperatorCharacters: (proposition: string[]) => {
-    proposition: string[];
+    propositionArray: string[];
     isValid: boolean;
   };
   isAProposition: (
@@ -24,33 +24,42 @@ export function PropositionalForm() {
     },
     joinOperatorCharacters: (proposition) => {
       let barIndex = proposition.indexOf('-');
-      if (barIndex === -1) return { proposition, isValid: true };
+      if (barIndex === -1)
+        return { propositionArray: proposition, isValid: true };
 
       while (barIndex !== -1) {
         const previous = barIndex - 1,
           next = barIndex + 1;
 
         if (proposition[next] === '>') {
+          proposition.splice(next, 1);
+
           if (proposition[previous] === '<') {
             proposition[barIndex] = '<->';
-            proposition.splice(next, 1);
             proposition.splice(previous, 1);
           } else {
             proposition[barIndex] = '->';
-            proposition.splice(next, 1);
           }
-        } else return { proposition: [''], isValid: false };
+        } else {
+          return { propositionArray: [''], isValid: false };
+        }
 
         barIndex = proposition.indexOf('-');
       }
 
-      return { proposition, isValid: true };
+      return { propositionArray: proposition, isValid: true };
     },
     isAProposition: (proposition, operatorIndex) => {
       const uppercaseLetters = /[A-Z]/;
+      const openParentheses = /\(/;
+      const closeParentheses = /\)/;
       return {
-        previous: uppercaseLetters.test(proposition[operatorIndex - 1]),
-        next: uppercaseLetters.test(proposition[operatorIndex + 1]),
+        previous:
+          uppercaseLetters.test(proposition[operatorIndex - 1]) ||
+          closeParentheses.test(proposition[operatorIndex - 1]),
+        next:
+          uppercaseLetters.test(proposition[operatorIndex + 1]) ||
+          openParentheses.test(proposition[operatorIndex + 1]),
       };
     },
     unaryOperators: (proposition, operatorSymbol) => {
@@ -61,10 +70,9 @@ export function PropositionalForm() {
         const { next } = validations.isAProposition(proposition, notIndex);
         if (!next) return false;
 
-        proposition.splice(notIndex, 1);
+        proposition = proposition.filter((_, index) => index !== notIndex);
         notIndex = proposition.indexOf(operatorSymbol);
       }
-
       return true;
     },
     binaryOperators: (proposition, operatorSymbol) => {
@@ -78,7 +86,7 @@ export function PropositionalForm() {
         );
         if (!previous || !next) return false;
 
-        proposition.splice(operatorIndex, 1);
+        proposition = proposition.filter((_, index) => index !== operatorIndex);
         operatorIndex = proposition.indexOf(operatorSymbol);
       }
 
@@ -87,57 +95,39 @@ export function PropositionalForm() {
   };
 
   function testProposition() {
-    const testPropositions = [
-      '~A',
-      'A v B',
-      'A ^ B',
-      'A -> B',
-      'A <-> B',
-      '~',
-      '^',
-      'v',
-      '->',
-      '<->',
-    ];
+    const propositionString = userProposition.replace(/ /g, '');
+    const { propositionArray, isValid } = validations.joinOperatorCharacters(
+      propositionString.split('')
+    );
 
-    // const propositionString = userProposition.replace(/ /g, '');
-    // const propositionArray = propositionString.split('');
+    if (!isValid) return false;
 
-    testPropositions.forEach((test) => {
-      const testString = test.replace(/ /g, '');
-      const { proposition, isValid } = validations.joinOperatorCharacters(
-        testString.split('')
-      );
+    console.log(userProposition);
+    console.log(propositionString);
+    console.log(propositionArray);
 
-      if (!isValid) return;
+    const unaryOperators = ['~'];
+    const areUnaryOperatorsValid = unaryOperators.every((operator) =>
+      validations.unaryOperators(propositionArray, operator)
+    );
 
-      const testArray = proposition;
+    const binaryOperators = ['^', 'v', '->', '<->'];
+    const areBinaryOperatorsValid = binaryOperators.every((operator) =>
+      validations.binaryOperators(propositionArray, operator)
+    );
 
-      console.log(test);
-      console.log(testString);
-      console.log(testArray);
+    if (
+      !validations.characters(propositionString) ||
+      !areUnaryOperatorsValid ||
+      !areBinaryOperatorsValid
+    )
+      return false;
 
-      console.log(`Valid characters: ${validations.characters(testString)}`);
-      console.log(
-        `Not operator: ${validations.unaryOperators(testArray, '~')}`
-      );
-      console.log(
-        `And operator: ${validations.binaryOperators(testArray, '^')}`
-      );
-      console.log(
-        `Or operator: ${validations.binaryOperators(testArray, 'v')}`
-      );
-      console.log(
-        `Conditional operator: ${validations.binaryOperators(testArray, '->')}`
-      );
-      console.log(
-        `Equivalence operator: ${validations.binaryOperators(testArray, '<->')}`
-      );
-    });
+    return true;
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    testProposition();
+    console.log(testProposition());
     event.preventDefault();
   }
 
