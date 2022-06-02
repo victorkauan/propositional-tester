@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { LogicValueSelector } from './LogicValueSelector';
+import { LogicalValueSelector } from './LogicalValueSelector';
 
 type Validations = {
   hasValidCharacters: (proposition: string) => boolean;
@@ -21,11 +21,16 @@ type Validations = {
   binaryOperators: (proposition: string[], operatorSymbol: string) => boolean;
 };
 
-type Propositions = { letter: string; logicValue: boolean }[];
+type PropositionList = { letter: string; logicalValue: boolean }[];
+
+type BooleanCalculations = {
+  not: (proposition: string[]) => string[];
+};
 
 export function PropositionalForm() {
+  const [propositionInput, setPropositionInput] = useState('');
+  const [propositionList, setPropositionList] = useState<PropositionList>([]);
   const [userProposition, setUserProposition] = useState('');
-  const [propositions, setPropositions] = useState<Propositions>([]);
 
   const validations: Validations = {
     hasValidCharacters: (proposition) => {
@@ -175,7 +180,7 @@ export function PropositionalForm() {
   };
 
   function validateProposition() {
-    const propositionString = userProposition.replace(/ /g, '');
+    const propositionString = propositionInput.replace(/ /g, '');
 
     const { propositionArray, isValid } = validations.joinOperatorCharacters(
       propositionString.split('')
@@ -207,26 +212,85 @@ export function PropositionalForm() {
     return { proposition: propositionString, isValid: true };
   }
 
-  function createLogicValueSelectors(proposition: string) {
+  const booleanCalculations: BooleanCalculations = {
+    not: (proposition) => {
+      let notIndex = proposition.indexOf('~');
+
+      if (notIndex === -1) proposition;
+
+      while (notIndex !== -1) {
+        if (proposition[notIndex + 1] === '0') proposition[notIndex + 1] = '1';
+        else proposition[notIndex + 1] = '0';
+
+        proposition = proposition.filter((_, index) => index !== notIndex);
+
+        notIndex = proposition.indexOf('~');
+      }
+
+      return proposition;
+    },
+  };
+
+  function createPropositionList(proposition: string) {
     const propositionString = proposition.replace(/[^A-Z]/g, '');
     const propositionArray = propositionString.split('');
 
-    let propositions: Propositions = [];
+    let propositions: PropositionList = [];
     let letters: string[] = [];
 
     propositionArray.forEach((proposition) => {
       if (!letters.includes(proposition)) {
-        propositions.push({ letter: proposition, logicValue: false });
+        propositions.push({ letter: proposition, logicalValue: false });
         letters.push(proposition);
       }
     });
 
-    setPropositions(propositions);
+    setPropositionList(propositions);
+  }
+
+  function updatePropositionListValues() {
+    let propositions = document.querySelectorAll('li');
+
+    let newPropositionList: PropositionList = [];
+
+    propositions.forEach((proposition) => {
+      const trueRadio: any = proposition.querySelector('.trueRadio');
+
+      newPropositionList.push({
+        letter: proposition.className,
+        logicalValue: trueRadio.checked,
+      });
+    });
+
+    setPropositionList(newPropositionList);
+    return newPropositionList;
+  }
+
+  function calculateProposition() {
+    const propositionList = updatePropositionListValues();
+
+    let propositionString = userProposition;
+    propositionList.map((proposition) => {
+      const { letter, logicalValue } = proposition;
+      propositionString = propositionString.replace(
+        letter,
+        logicalValue ? '1' : '0'
+      );
+    });
+
+    let { propositionArray } = validations.joinOperatorCharacters(
+      propositionString.split('')
+    );
+
+    propositionArray = booleanCalculations.not(propositionArray);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     const { proposition, isValid } = validateProposition();
-    console.log(isValid ? createLogicValueSelectors(proposition) : false);
+    if (isValid) {
+      setUserProposition(proposition);
+      createPropositionList(proposition);
+    } else console.log(false);
     event.preventDefault();
   }
 
@@ -238,22 +302,24 @@ export function PropositionalForm() {
           <input
             type='text'
             name='proposition'
-            value={userProposition}
-            onChange={(event) => setUserProposition(event.target.value)}
+            value={propositionInput}
+            onChange={(event) => setPropositionInput(event.target.value)}
           />
         </label>
         <input type='submit' value='Test' />
       </form>
 
       <ul>
-        {propositions.map((proposition) => (
-          <LogicValueSelector
+        {propositionList.map((proposition) => (
+          <LogicalValueSelector
             key={proposition.letter}
             letter={proposition.letter}
-            logicValue={proposition.logicValue}
+            logicalValue={proposition.logicalValue}
           />
         ))}
       </ul>
+
+      <button onClick={calculateProposition}>Calculate</button>
     </>
   );
 }
