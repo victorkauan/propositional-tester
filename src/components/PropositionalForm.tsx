@@ -1,14 +1,17 @@
 import { useState, FormEvent } from 'react';
 
 type Validations = {
-  characters: (proposition: string) => boolean;
+  hasValidCharacters: (proposition: string) => boolean;
   joinOperatorCharacters: (proposition: string[]) => {
     propositionArray: string[];
     isValid: boolean;
   };
   hasConsecutiveLetters: (proposition: string[]) => boolean;
-  openCloseParentheses: (proposition: string) => boolean;
-  emptyParentheses: (proposition: string[]) => boolean;
+  parentheses: {
+    openClose: (proposition: string) => boolean;
+    empty: (proposition: string[]) => boolean;
+    validOperationsWith: (proposition: string[]) => boolean;
+  };
   isAProposition: (
     proposition: string[],
     operatorIndex: number
@@ -21,7 +24,7 @@ export function PropositionalForm() {
   const [userProposition, setUserProposition] = useState('');
 
   const validations: Validations = {
-    characters: (proposition) => {
+    hasValidCharacters: (proposition) => {
       const validCharacters = /^[A-Z v\~\^\-\<\>\(\)]+$/;
       return validCharacters.test(proposition);
     },
@@ -38,32 +41,56 @@ export function PropositionalForm() {
 
       return false;
     },
-    emptyParentheses: (proposition) => {
-      for (let i = 0; i < proposition.length; i++) {
-        if (proposition[i] === '(' && proposition[i + 1] === ')') return true;
-      }
+    parentheses: {
+      empty: (proposition) => {
+        for (let i = 0; i < proposition.length; i++) {
+          if (proposition[i] === '(' && proposition[i + 1] === ')') return true;
+        }
 
-      return false;
-    },
-    openCloseParentheses: (proposition) => {
-      const notParentheses = /[^\(\)]/;
-      let propositionArray = proposition.replace(notParentheses, '');
+        return false;
+      },
+      openClose: (proposition) => {
+        const notParentheses = /[^\(\)]/;
+        let propositionArray = proposition.replace(notParentheses, '');
 
-      let openIndex = propositionArray.indexOf('(');
-      let closeIndex = propositionArray.indexOf(')');
+        let openIndex = propositionArray.indexOf('(');
+        let closeIndex = propositionArray.indexOf(')');
 
-      if (openIndex === -1 && closeIndex === -1) return true;
+        if (openIndex === -1 && closeIndex === -1) return true;
 
-      let openCloseCounter = 0;
+        let openCloseCounter = 0;
 
-      for (let i = 0; i < propositionArray.length; i++) {
-        if (propositionArray[i] === '(') openCloseCounter += 1;
-        else if (propositionArray[i] === ')') openCloseCounter -= 1;
+        for (let i = 0; i < propositionArray.length; i++) {
+          if (propositionArray[i] === '(') openCloseCounter += 1;
+          else if (propositionArray[i] === ')') openCloseCounter -= 1;
 
-        if (openCloseCounter < 0) return false;
-      }
+          if (openCloseCounter < 0) return false;
+        }
 
-      return openCloseCounter === 0;
+        return openCloseCounter === 0;
+      },
+      validOperationsWith: (proposition) => {
+        const openCharacters = /([v\^\(\~]|->|<->)/;
+        const closeCharacters = /([v\^\)]|->|<->)/;
+
+        for (let i = 0; i < proposition.length; i++) {
+          if (
+            i !== 0 &&
+            proposition[i] === '(' &&
+            !openCharacters.test(proposition[i - 1])
+          )
+            return false;
+
+          if (
+            i !== proposition.length - 1 &&
+            proposition[i] === ')' &&
+            !closeCharacters.test(proposition[i + 1])
+          )
+            return false;
+        }
+
+        return true;
+      },
     },
     joinOperatorCharacters: (proposition) => {
       let barIndex = proposition.indexOf('-');
@@ -142,7 +169,7 @@ export function PropositionalForm() {
 
   function testProposition() {
     const propositionString = userProposition.replace(/ /g, '');
-    if (!validations.characters(propositionString)) return false;
+    if (!validations.hasValidCharacters(propositionString)) return false;
 
     const { propositionArray, isValid } = validations.joinOperatorCharacters(
       propositionString.split('')
@@ -153,9 +180,12 @@ export function PropositionalForm() {
     console.log(propositionString);
     console.log(propositionArray);
 
-    if (!validations.openCloseParentheses(propositionString)) return false;
+    if (!validations.parentheses.openClose(propositionString)) return false;
 
-    if (validations.emptyParentheses(propositionArray)) return false;
+    if (validations.parentheses.empty(propositionArray)) return false;
+
+    if (!validations.parentheses.validOperationsWith(propositionArray))
+      return false;
 
     if (validations.hasConsecutiveLetters(propositionArray)) return false;
 
