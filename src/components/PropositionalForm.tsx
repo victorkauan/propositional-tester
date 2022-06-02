@@ -349,11 +349,11 @@ export function PropositionalForm() {
     let newPropositionList: PropositionList = [];
 
     propositions.forEach((proposition) => {
-      const trueRadio: any = proposition.querySelector('.trueRadio');
+      const select: any = proposition.querySelector('select');
 
       newPropositionList.push({
         letter: proposition.className,
-        logicalValue: trueRadio.checked,
+        logicalValue: select.options.selectedIndex === 0 ? true : false,
       });
     });
 
@@ -409,6 +409,8 @@ export function PropositionalForm() {
     }
 
     propositionArray = calculateOperations(propositionArray);
+
+    alert(`Valor lógico: ${propositionArray}`);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -416,7 +418,8 @@ export function PropositionalForm() {
     if (isValid) {
       setUserProposition(proposition);
       createPropositionList(proposition);
-    } else console.log(false);
+    } else alert('Proposição inválida!');
+
     event.preventDefault();
   }
 
