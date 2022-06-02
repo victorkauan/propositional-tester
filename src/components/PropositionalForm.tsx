@@ -23,12 +23,14 @@ type Validations = {
 
 type PropositionList = { letter: string; logicalValue: boolean }[];
 
+type PropositionArray = (proposition: string[]) => string[];
+
 type BooleanCalculations = {
-  not: (proposition: string[]) => string[];
-  and: (proposition: string[]) => string[];
-  or: (proposition: string[]) => string[];
-  conditional: (proposition: string[]) => string[];
-  biconditional: (proposition: string[]) => string[];
+  not: PropositionArray;
+  and: PropositionArray;
+  or: PropositionArray;
+  conditional: PropositionArray;
+  biconditional: PropositionArray;
 };
 
 export function PropositionalForm() {
@@ -216,7 +218,7 @@ export function PropositionalForm() {
     return { proposition: propositionString, isValid: true };
   }
 
-  const booleanCalculations: BooleanCalculations = {
+  const operatorCalculations: BooleanCalculations = {
     not: (proposition) => {
       let notIndex = proposition.indexOf('~');
       if (notIndex === -1) proposition;
@@ -359,6 +361,14 @@ export function PropositionalForm() {
     return newPropositionList;
   }
 
+  function calculateOperations(proposition: string[]): string[] {
+    let key: keyof typeof operatorCalculations;
+    for (key in operatorCalculations)
+      proposition = operatorCalculations[key](proposition);
+
+    return proposition;
+  }
+
   function calculateProposition() {
     const propositionListValues = updatePropositionListValues();
 
@@ -377,11 +387,7 @@ export function PropositionalForm() {
       propositionString.split('')
     );
 
-    propositionArray = booleanCalculations.not(propositionArray);
-    propositionArray = booleanCalculations.and(propositionArray);
-    propositionArray = booleanCalculations.or(propositionArray);
-    propositionArray = booleanCalculations.conditional(propositionArray);
-    propositionArray = booleanCalculations.biconditional(propositionArray);
+    propositionArray = calculateOperations(propositionArray);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
