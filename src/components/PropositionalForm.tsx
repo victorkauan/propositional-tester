@@ -26,6 +26,7 @@ type PropositionList = { letter: string; logicalValue: boolean }[];
 type BooleanCalculations = {
   not: (proposition: string[]) => string[];
   and: (proposition: string[]) => string[];
+  or: (proposition: string[]) => string[];
 };
 
 export function PropositionalForm() {
@@ -252,6 +253,29 @@ export function PropositionalForm() {
 
       return proposition;
     },
+    or: (proposition) => {
+      let orIndex = proposition.indexOf('v');
+      if (orIndex === -1) return proposition;
+
+      while (orIndex !== -1) {
+        if (
+          (proposition[orIndex - 1] === '0' &&
+            proposition[orIndex + 1] === '1') ||
+          (proposition[orIndex - 1] === '1' &&
+            proposition[orIndex + 1] === '0') ||
+          (proposition[orIndex - 1] === '1' && proposition[orIndex + 1] === '1')
+        )
+          proposition[orIndex + 1] = '1';
+        else proposition[orIndex + 1] = '0';
+
+        proposition = proposition.filter(
+          (_, index) => index !== orIndex - 1 && index !== orIndex
+        );
+        orIndex = proposition.indexOf('v');
+      }
+
+      return proposition;
+    },
   };
 
   function createPropositionList(proposition: string) {
@@ -307,6 +331,7 @@ export function PropositionalForm() {
 
     propositionArray = booleanCalculations.not(propositionArray);
     propositionArray = booleanCalculations.and(propositionArray);
+    propositionArray = booleanCalculations.or(propositionArray);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
