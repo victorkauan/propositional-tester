@@ -1,5 +1,9 @@
 import { PropositionalForm } from './components/PropositionalForm';
 
 export function App() {
-  return <PropositionalForm />;
+  return (
+    <div className='app'>
+      <PropositionalForm />
+    </div>
+  );
 }

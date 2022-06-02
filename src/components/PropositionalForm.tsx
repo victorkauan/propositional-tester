@@ -1,6 +1,8 @@
 import { useState, FormEvent } from 'react';
 import { LogicalValueSelector } from './LogicalValueSelector';
 
+import '../styles/global.scss';
+
 type Validations = {
   hasValidCharacters: (proposition: string) => boolean;
   joinOperatorCharacters: (proposition: string[]) => {
@@ -37,6 +39,7 @@ export function PropositionalForm() {
   const [propositionInput, setPropositionInput] = useState('');
   const [propositionList, setPropositionList] = useState<PropositionList>([]);
   const [userProposition, setUserProposition] = useState('');
+  const [logicalValueResult, setLogicalValueResult] = useState('');
 
   const validations: Validations = {
     hasValidCharacters: (proposition) => {
@@ -410,7 +413,7 @@ export function PropositionalForm() {
 
     propositionArray = calculateOperations(propositionArray);
 
-    alert(`Valor lógico: ${propositionArray}`);
+    setLogicalValueResult(propositionArray[0] === '1' ? 'Verdadeira' : 'Falsa');
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -425,30 +428,48 @@ export function PropositionalForm() {
 
   return (
     <>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Formula:
-          <input
-            type='text'
-            name='proposition'
-            value={propositionInput}
-            onChange={(event) => setPropositionInput(event.target.value)}
-          />
-        </label>
-        <input type='submit' value='Test' />
-      </form>
+      <div className='propositionInput'>
+        <h1>Provador Proposicional</h1>
+        <form className='propositionalForm' onSubmit={handleSubmit}>
+          <label>
+            <h2>Expressão Booleana:</h2>
+            <input
+              type='text'
+              name='proposition'
+              value={propositionInput}
+              onChange={(event) => setPropositionInput(event.target.value)}
+            />
+          </label>
+          <input type='submit' value='TESTAR PROPOSIÇÃO' />
+        </form>
 
-      <ul>
-        {propositionList.map((proposition) => (
-          <LogicalValueSelector
-            key={proposition.letter}
-            letter={proposition.letter}
-            logicalValue={proposition.logicalValue}
-          />
-        ))}
-      </ul>
+        {propositionList.length > 0 && (
+          <div className='calculateProposition'>
+            <h2>Proposições de {userProposition}:</h2>
+            <ul className='propositionList'>
+              {propositionList.map((proposition) => (
+                <LogicalValueSelector
+                  key={proposition.letter}
+                  letter={proposition.letter}
+                  logicalValue={proposition.logicalValue}
+                />
+              ))}
+            </ul>
 
-      <button onClick={calculateProposition}>Calculate</button>
+            <button onClick={calculateProposition}>
+              CALCULAR VALOR LÓGICO
+            </button>
+          </div>
+        )}
+
+        {logicalValueResult && (
+          <div className='propositionResult'>
+            <p className='logicalValueResult'>
+              Valor lógico: <strong>{logicalValueResult}</strong>
+            </p>
+          </div>
+        )}
+      </div>
     </>
   );
 }

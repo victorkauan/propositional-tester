@@ -1,0 +1,149 @@
+$white: #fff;
+$blue: #1967d2;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body,
+input,
+button,
+select,
+option {
+  color: $blue;
+  font: 400 1rem 'Roboto', sans-serif;
+}
+
+.app {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+
+  h1 {
+    text-align: center;
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+  }
+
+  ul {
+    list-style: none;
+  }
+
+  .propositionInput,
+  .propositionalForm,
+  .propositionalForm label,
+  .calculateProposition {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .propositionalForm,
+  .propositionalForm label,
+  .calculateProposition,
+  .propositionList {
+    width: 100%;
+  }
+
+  .propositionInput {
+    @media screen and (min-width: 376px) {
+      & {
+        box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,
+          rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+      }
+    }
+
+    gap: 1.5rem;
+    width: 25rem;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+
+    input,
+    button {
+      padding: 0.75rem 1rem;
+      width: 100%;
+
+      border-radius: 0.25rem;
+    }
+
+    input[type='submit'],
+    button {
+      color: $white;
+      font-weight: 700;
+
+      background: $blue;
+      border: none;
+
+      transition: transform 0.1s, box-shadow 0.1s;
+
+      &:hover {
+        cursor: pointer;
+        transform: scale(1.01);
+        box-shadow: rgba($blue, 0.3) 0px 1px 2px 0px,
+          rgba($blue, 0.15) 0px 2px 6px 2px;
+      }
+    }
+
+    .propositionalForm {
+      gap: 1rem;
+
+      input[type='text'] {
+        border: 1px solid $blue;
+
+        &:focus {
+          outline: none;
+          box-shadow: rgba($blue, 0.3) 0px 1px 2px 0px,
+            rgba($blue, 0.15) 0px 2px 6px 2px;
+        }
+      }
+    }
+
+    .calculateProposition {
+      .propositionList {
+        margin-bottom: 1rem;
+        display: grid;
+        align-items: center;
+        justify-content: space-between;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+
+        li {
+          font-weight: 700;
+
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+
+          select {
+            font-weight: 700;
+
+            background: transparent;
+            border: 1px solid $blue;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+
+            &:focus {
+              outline: none;
+              box-shadow: rgba($blue, 0.3) 0px 1px 2px 0px,
+                rgba($blue, 0.15) 0px 2px 6px 2px;
+            }
+          }
+        }
+      }
+    }
+
+    .propositionResult {
+      .logicalValueResult {
+        font-size: 1.25rem;
+      }
+    }
+  }
+}
