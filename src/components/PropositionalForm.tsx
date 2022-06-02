@@ -28,6 +28,7 @@ type BooleanCalculations = {
   and: (proposition: string[]) => string[];
   or: (proposition: string[]) => string[];
   conditional: (proposition: string[]) => string[];
+  biconditional: (proposition: string[]) => string[];
 };
 
 export function PropositionalForm() {
@@ -298,6 +299,29 @@ export function PropositionalForm() {
 
       return proposition;
     },
+    biconditional: (proposition) => {
+      let biconditionalIndex = proposition.indexOf('<->');
+      if (biconditionalIndex === -1) return proposition;
+
+      while (biconditionalIndex !== -1) {
+        if (
+          (proposition[biconditionalIndex - 1] === '1' &&
+            proposition[biconditionalIndex + 1] === '0') ||
+          (proposition[biconditionalIndex - 1] === '0' &&
+            proposition[biconditionalIndex + 1] === '1')
+        )
+          proposition[biconditionalIndex + 1] = '0';
+        else proposition[biconditionalIndex + 1] = '1';
+
+        proposition = proposition.filter(
+          (_, index) =>
+            index !== biconditionalIndex - 1 && index !== biconditionalIndex
+        );
+        biconditionalIndex = proposition.indexOf('<->');
+      }
+
+      return proposition;
+    },
   };
 
   function createPropositionList(proposition: string) {
@@ -357,6 +381,7 @@ export function PropositionalForm() {
     propositionArray = booleanCalculations.and(propositionArray);
     propositionArray = booleanCalculations.or(propositionArray);
     propositionArray = booleanCalculations.conditional(propositionArray);
+    propositionArray = booleanCalculations.biconditional(propositionArray);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
