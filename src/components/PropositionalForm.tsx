@@ -387,6 +387,27 @@ export function PropositionalForm() {
       propositionString.split('')
     );
 
+    while (propositionArray.includes('(')) {
+      let openIndex: any;
+      let closeIndex: any;
+
+      for (let i = 0; i < propositionArray.length; i++) {
+        if (propositionArray[i] === '(') openIndex = i;
+        else if (propositionArray[i] === ')') {
+          closeIndex = i;
+          break;
+        }
+      }
+
+      propositionArray[openIndex] = calculateOperations(
+        propositionArray.slice(openIndex, closeIndex + 1)
+      )[1];
+
+      propositionArray = propositionArray.filter(
+        (_, index) => index <= openIndex || index > closeIndex
+      );
+    }
+
     propositionArray = calculateOperations(propositionArray);
   }
 
