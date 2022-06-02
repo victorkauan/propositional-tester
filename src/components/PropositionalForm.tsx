@@ -25,6 +25,7 @@ type PropositionList = { letter: string; logicalValue: boolean }[];
 
 type BooleanCalculations = {
   not: (proposition: string[]) => string[];
+  and: (proposition: string[]) => string[];
 };
 
 export function PropositionalForm() {
@@ -215,7 +216,6 @@ export function PropositionalForm() {
   const booleanCalculations: BooleanCalculations = {
     not: (proposition) => {
       let notIndex = proposition.indexOf('~');
-
       if (notIndex === -1) proposition;
 
       while (notIndex !== -1) {
@@ -223,8 +223,31 @@ export function PropositionalForm() {
         else proposition[notIndex + 1] = '0';
 
         proposition = proposition.filter((_, index) => index !== notIndex);
-
         notIndex = proposition.indexOf('~');
+      }
+
+      return proposition;
+    },
+    and: (proposition) => {
+      let andIndex = proposition.indexOf('^');
+      if (andIndex === -1) return proposition;
+
+      while (andIndex !== -1) {
+        if (
+          (proposition[andIndex - 1] === '0' &&
+            proposition[andIndex + 1] === '0') ||
+          (proposition[andIndex - 1] === '0' &&
+            proposition[andIndex + 1] === '1') ||
+          (proposition[andIndex - 1] === '1' &&
+            proposition[andIndex + 1] === '0')
+        )
+          proposition[andIndex + 1] = '0';
+        else proposition[andIndex + 1] = '1';
+
+        proposition = proposition.filter(
+          (_, index) => index !== andIndex - 1 && index !== andIndex
+        );
+        andIndex = proposition.indexOf('^');
       }
 
       return proposition;
@@ -283,6 +306,7 @@ export function PropositionalForm() {
     );
 
     propositionArray = booleanCalculations.not(propositionArray);
+    propositionArray = booleanCalculations.and(propositionArray);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
