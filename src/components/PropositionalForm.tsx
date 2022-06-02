@@ -1,4 +1,5 @@
 import { useState, FormEvent } from 'react';
+import { LogicValueSelector } from './LogicValueSelector';
 
 type Validations = {
   hasValidCharacters: (proposition: string) => boolean;
@@ -20,8 +21,11 @@ type Validations = {
   binaryOperators: (proposition: string[], operatorSymbol: string) => boolean;
 };
 
+type Propositions = { letter: string; logicValue: boolean }[];
+
 export function PropositionalForm() {
   const [userProposition, setUserProposition] = useState('');
+  const [propositions, setPropositions] = useState<Propositions>([]);
 
   const validations: Validations = {
     hasValidCharacters: (proposition) => {
@@ -185,7 +189,7 @@ export function PropositionalForm() {
       validations.parentheses.empty(propositionArray) ||
       !validations.parentheses.validOperationsWith(propositionArray)
     )
-      return false;
+      return { proposition: propositionString, isValid: false };
 
     const unaryOperators = ['~'];
     const areUnaryOperatorsValid = unaryOperators.every((operator) =>
@@ -197,28 +201,59 @@ export function PropositionalForm() {
       validations.binaryOperators(propositionArray, operator)
     );
 
-    if (!areUnaryOperatorsValid || !areBinaryOperatorsValid) return false;
+    if (!areUnaryOperatorsValid || !areBinaryOperatorsValid)
+      return { proposition: propositionString, isValid: false };
 
-    return true;
+    return { proposition: propositionString, isValid: true };
+  }
+
+  function createLogicValueSelectors(proposition: string) {
+    const propositionString = proposition.replace(/[^A-Z]/g, '');
+    const propositionArray = propositionString.split('');
+
+    let propositions: Propositions = [];
+    let letters: string[] = [];
+
+    propositionArray.forEach((proposition) => {
+      if (!letters.includes(proposition)) {
+        propositions.push({ letter: proposition, logicValue: false });
+        letters.push(proposition);
+      }
+    });
+
+    setPropositions(propositions);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    console.log(validateProposition());
+    const { proposition, isValid } = validateProposition();
+    console.log(isValid ? createLogicValueSelectors(proposition) : false);
     event.preventDefault();
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Formula:
-        <input
-          type='text'
-          name='proposition'
-          value={userProposition}
-          onChange={(event) => setUserProposition(event.target.value)}
-        />
-      </label>
-      <input type='submit' value='Test' />
-    </form>
+    <>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Formula:
+          <input
+            type='text'
+            name='proposition'
+            value={userProposition}
+            onChange={(event) => setUserProposition(event.target.value)}
+          />
+        </label>
+        <input type='submit' value='Test' />
+      </form>
+
+      <ul>
+        {propositions.map((proposition) => (
+          <LogicValueSelector
+            key={proposition.letter}
+            letter={proposition.letter}
+            logicValue={proposition.logicValue}
+          />
+        ))}
+      </ul>
+    </>
   );
 }
