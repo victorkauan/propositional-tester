@@ -139,8 +139,11 @@ export function PropositionalForm() {
       if (notIndex === -1) return true;
 
       while (notIndex !== -1) {
-        const { next } = validations.isAProposition(proposition, notIndex);
-        if (!next) return false;
+        const { previous, next } = validations.isAProposition(
+          proposition,
+          notIndex
+        );
+        if (previous || !next) return false;
 
         proposition = proposition.filter((_, index) => index !== notIndex);
         notIndex = proposition.indexOf(operatorSymbol);
@@ -167,27 +170,22 @@ export function PropositionalForm() {
     },
   };
 
-  function testProposition() {
+  function validateProposition() {
     const propositionString = userProposition.replace(/ /g, '');
-    if (!validations.hasValidCharacters(propositionString)) return false;
 
     const { propositionArray, isValid } = validations.joinOperatorCharacters(
       propositionString.split('')
     );
-    if (!isValid) return false;
 
-    console.log(userProposition);
-    console.log(propositionString);
-    console.log(propositionArray);
-
-    if (!validations.parentheses.openClose(propositionString)) return false;
-
-    if (validations.parentheses.empty(propositionArray)) return false;
-
-    if (!validations.parentheses.validOperationsWith(propositionArray))
+    if (
+      !validations.hasValidCharacters(propositionString) ||
+      validations.hasConsecutiveLetters(propositionArray) ||
+      !isValid ||
+      !validations.parentheses.openClose(propositionString) ||
+      validations.parentheses.empty(propositionArray) ||
+      !validations.parentheses.validOperationsWith(propositionArray)
+    )
       return false;
-
-    if (validations.hasConsecutiveLetters(propositionArray)) return false;
 
     const unaryOperators = ['~'];
     const areUnaryOperatorsValid = unaryOperators.every((operator) =>
@@ -205,7 +203,7 @@ export function PropositionalForm() {
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    console.log(testProposition());
+    console.log(validateProposition());
     event.preventDefault();
   }
 
