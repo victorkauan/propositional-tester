@@ -27,6 +27,7 @@ type BooleanCalculations = {
   not: (proposition: string[]) => string[];
   and: (proposition: string[]) => string[];
   or: (proposition: string[]) => string[];
+  conditional: (proposition: string[]) => string[];
 };
 
 export function PropositionalForm() {
@@ -276,6 +277,27 @@ export function PropositionalForm() {
 
       return proposition;
     },
+    conditional: (proposition) => {
+      let conditionalIndex = proposition.indexOf('->');
+      if (conditionalIndex === -1) return proposition;
+
+      while (conditionalIndex !== -1) {
+        if (
+          proposition[conditionalIndex - 1] === '1' &&
+          proposition[conditionalIndex + 1] === '0'
+        )
+          proposition[conditionalIndex + 1] = '0';
+        else proposition[conditionalIndex + 1] = '1';
+
+        proposition = proposition.filter(
+          (_, index) =>
+            index !== conditionalIndex - 1 && index !== conditionalIndex
+        );
+        conditionalIndex = proposition.indexOf('->');
+      }
+
+      return proposition;
+    },
   };
 
   function createPropositionList(proposition: string) {
@@ -314,13 +336,15 @@ export function PropositionalForm() {
   }
 
   function calculateProposition() {
-    const propositionList = updatePropositionListValues();
+    const propositionListValues = updatePropositionListValues();
 
     let propositionString = userProposition;
-    propositionList.map((proposition) => {
+    propositionListValues.map((proposition) => {
       const { letter, logicalValue } = proposition;
+      const letterRegExp = new RegExp(letter, 'g');
+
       propositionString = propositionString.replace(
-        letter,
+        letterRegExp,
         logicalValue ? '1' : '0'
       );
     });
@@ -332,6 +356,7 @@ export function PropositionalForm() {
     propositionArray = booleanCalculations.not(propositionArray);
     propositionArray = booleanCalculations.and(propositionArray);
     propositionArray = booleanCalculations.or(propositionArray);
+    propositionArray = booleanCalculations.conditional(propositionArray);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
